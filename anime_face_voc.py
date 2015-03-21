@@ -4,7 +4,6 @@ import os
 import argparse
 
 import cv2
-import yaml
 import random
 
 
@@ -65,7 +64,7 @@ class Annotation(object):
                 'difficult': '0'
             })
 
-        return yaml.dump({
+        value = {
             'annotation': {
                 'folder': self._folder,
                 'filename': self._filename,
@@ -87,7 +86,38 @@ class Annotation(object):
                 'segmented': '0',
                 'object': objects
             }
-        })
+        }
+
+        return '%YAML:1.0\n' + self._dump(None, value, 0)
+
+    def _dump(self, parent, value, depth):
+        if isinstance(value, int) or isinstance(value, long) or isinstance(value, float):
+            return str(value) + '\n'
+        elif isinstance(value, str) or isinstance(value, unicode):
+            return '\'' + value + '\'\n'
+        elif isinstance(value, dict):
+            if isinstance(parent, list):
+                s = ''
+                indent = ''
+                for k in value:
+                    v = value[k]
+                    s += indent + k + ': ' + self._dump(value, v, depth + 1)
+                    indent = '  ' * depth
+                return s
+            else:
+                s = '\n'
+                indent = '  ' * depth
+                for k in value:
+                    v = value[k]
+                    s += indent + k + ': ' + self._dump(value, v, depth + 1)
+                return s
+        elif isinstance(value, list):
+            s = '\n'
+            for i, v in enumerate(value):
+                s += '  ' * depth + '- ' + self._dump(value, v, depth + 1)
+            return s
+        else:
+            raise Exception('Not implemented ({0})'.format(type(value)))
 
     @property
     def classes(self):
