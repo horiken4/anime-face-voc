@@ -12,6 +12,8 @@ class AnimeFaceDetector(object):
         self._cascade = cv2.CascadeClassifier(cascade_file)
 
     def detect(self, img):
+        if img is None:
+            return None
 
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         gray = cv2.equalizeHist(gray)
